@@ -15,7 +15,7 @@ spec:
       serviceAccountName: sensu-operator
       containers:
         - name: sensu-operator
-          image: betorvs/sensu-operator:0.0.1-beta.0.1
+          image: betorvs/sensu-operator:0.0.1-beta.0.2
           command:
           - sensu-operator
           imagePullPolicy: Always

@@ -198,7 +198,7 @@ func (r *ReconcileSensuHandler) addFinalizer(reqLogger logr.Logger, cr *sensuv1a
 	cr.SetFinalizers(append(cr.GetFinalizers(), sensuHandlerFinalizer))
 
 	// Update CR
-	err := r.client.Status().Update(context.TODO(), cr)
+	err := r.client.Update(context.TODO(), cr)
 	if err != nil {
 		reqLogger.Error(err, "Failed to update Sensu Handler with finalizer")
 		return err
@@ -226,7 +226,7 @@ func (r *ReconcileSensuHandler) statusCreated(reqLogger logr.Logger, cr *sensuv1
 	cr.Status.OwnerID = sensubackendClusterID
 
 	// Update CR
-	err := r.client.Update(context.TODO(), cr)
+	err := r.client.Status().Update(context.TODO(), cr)
 	if err != nil {
 		reqLogger.Error(err, "Failed to update Status created for Sensu Handler")
 		return err
