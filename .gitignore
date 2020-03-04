@@ -1,0 +1,8 @@
+.vscode*
+build/_output/bin/sensu-operator
+build/_output/bin/sensu-operator-local
+*.pem
+*.csr
+sensu-backend-secrets.yaml
+sensu-ca-secrets.yaml 
+sensuoperator-secret.yaml

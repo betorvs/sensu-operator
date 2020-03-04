@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sensu-operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: sensu-operator
+  template:
+    metadata:
+      labels:
+        name: sensu-operator
+    spec:
+      serviceAccountName: sensu-operator
+      containers:
+        - name: sensu-operator
+          image: betorvs/sensu-operator:0.0.1-beta.0.1
+          command:
+          - sensu-operator
+          imagePullPolicy: Always
+          env:
+            - name: WATCH_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: OPERATOR_NAME
+              value: "sensu-operator"
+            - name: SENSU_CA_CERTIFICATE
+              value: "/certs-ca/sensu-ca.pem"
+            - name: SENSU_BACKEND_CLUSTER_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: sensu-operator
+                  key: adminpassword
+            - name: OPERATOR_SENSU_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: sensu-operator
+                  key: operatorpassword
+          volumeMounts:
+          - mountPath: "/certs-ca"
+            name: sensu-ca-pem
+            readOnly: true
+      volumes:
+        - name: sensu-ca-pem
+          secret:
+            secretName: sensu-ca-pem

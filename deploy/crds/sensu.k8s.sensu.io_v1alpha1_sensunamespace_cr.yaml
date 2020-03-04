@@ -1,0 +1,8 @@
+apiVersion: sensu.k8s.sensu.io/v1alpha1
+kind: SensuNamespace
+metadata:
+  name: development
+spec:
+  # Add fields here
+  name: "development"
+  sensu_backend_api: "sensu-api.sensu.svc.cluster.local:8080"

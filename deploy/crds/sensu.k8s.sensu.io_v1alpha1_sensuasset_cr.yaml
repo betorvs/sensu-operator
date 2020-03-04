@@ -1,0 +1,11 @@
+apiVersion: sensu.k8s.sensu.io/v1alpha1
+kind: SensuAsset
+metadata:
+  name: sensu-runtime-ruby-asset
+spec:
+  # Add fields here
+  name: "sensu-runtime-ruby"
+  sensu_backend_api: "sensu-api.sensu.svc.cluster.local:8080"
+  namespace: "default"
+  asseturl: "https://assets.bonsai.sensu.io/5123017d3dadf2067fa90fc28275b92e9b586885/sensu-ruby-runtime_0.0.10_ruby-2.4.4_alpine_linux_amd64.tar.gz"
+  sha512: "8d768d1fba545898a8d09dca603457eb0018ec6829bc5f609a1ea51a2be0c4b2d13e1aa46139ecbb04873449e4c76f463f0bdfbaf2107caf37ab1c8db87d5250"

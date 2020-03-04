@@ -1,0 +1,10 @@
+apiVersion: sensu.k8s.sensu.io/v1alpha1
+kind: SensuBackend
+metadata:
+  name: sensubackend
+spec:
+  # Add fields here
+  replicas: 2
+  sensubackendurl: "sensu-api.sensu.svc.cluster.local:8080"
+  image: "sensu/sensu:5.18.0"
+  debug: true

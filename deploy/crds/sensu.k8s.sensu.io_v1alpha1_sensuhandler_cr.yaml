@@ -1,0 +1,15 @@
+apiVersion: sensu.k8s.sensu.io/v1alpha1
+kind: SensuHandler
+metadata:
+  name: opsgenie-handler
+spec:
+  # Add fields here
+  name: "opsgenie"
+  sensu_backend_api: "sensu-api.sensu.svc.cluster.local:8080"
+  namespace: "default"
+  type: "pipe"
+  command: "sensu-opsgenie-handler"
+  filters: ["is_incident", "not_silenced"]
+  timeout: 0
+  env_vars: ["OPSGENIE_AUTHTOKEN=aaaaa-xxxxx-dddddd","OPSGENIE_TEAM=ops"]
+

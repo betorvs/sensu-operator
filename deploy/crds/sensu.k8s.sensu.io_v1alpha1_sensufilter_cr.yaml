@@ -1,0 +1,13 @@
+apiVersion: sensu.k8s.sensu.io/v1alpha1
+kind: SensuFilter
+metadata:
+  name: sensufilter-example
+spec:
+  # Add fields here
+  name: "production_filter"
+  sensu_backend_api: "sensu-api.sensu.svc.cluster.local:8080"
+  namespace: "default"
+  action: "allow"
+  expressions: 
+    - "event.entity.labels['environment'] == 'production'"
+  

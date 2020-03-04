@@ -1,0 +1,95 @@
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: sensubackends.sensu.k8s.sensu.io
+spec:
+  group: sensu.k8s.sensu.io
+  names:
+    kind: SensuBackend
+    listKind: SensuBackendList
+    plural: sensubackends
+    singular: sensubackend
+  scope: Namespaced
+  subresources:
+    status: {}
+  validation:
+    openAPIV3Schema:
+      description: SensuBackend is the Schema for the sensubackends API
+      properties:
+        apiVersion:
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#resources'
+          type: string
+        kind:
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#types-kinds'
+          type: string
+        metadata:
+          type: object
+        spec:
+          description: SensuBackendSpec defines the desired state of SensuBackend
+          properties:
+            debug:
+              type: boolean
+            image:
+              maxLength: 35
+              minLength: 1
+              type: string
+            replicas:
+              description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
+                Important: Run "operator-sdk generate k8s" to regenerate code after
+                modifying this file Add custom validation using kubebuilder tags:
+                https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html'
+              format: int32
+              maximum: 100
+              minimum: 1
+              type: integer
+            sensubackendurl:
+              maxLength: 60
+              minLength: 1
+              type: string
+          required:
+          - debug
+          - image
+          - replicas
+          - sensubackendurl
+          type: object
+        status:
+          description: SensuBackendStatus defines the observed state of SensuBackend
+          properties:
+            admin_token:
+              description: AdminToken to access Sensu API
+              type: string
+            cluster_id:
+              description: ClusterID to access Sensu API
+              type: string
+            nodes:
+              description: Nodes are the names of pods
+              items:
+                type: string
+              type: array
+            operator_token:
+              description: OperatorToken to access Sensu API
+              type: string
+            services:
+              description: Services are the names of svcs
+              items:
+                type: string
+              type: array
+            token:
+              description: Token to connect to Sensu API
+              type: string
+          required:
+          - admin_token
+          - cluster_id
+          - operator_token
+          - token
+          type: object
+      type: object
+  version: v1alpha1
+  versions:
+  - name: v1alpha1
+    served: true
+    storage: true

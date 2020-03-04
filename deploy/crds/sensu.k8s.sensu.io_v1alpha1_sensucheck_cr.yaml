@@ -1,0 +1,17 @@
+apiVersion: sensu.k8s.sensu.io/v1alpha1
+kind: SensuCheck
+metadata:
+  name: example-sensucheck
+spec:
+  # Add fields here
+  name: "ruby-version"
+  sensu_backend_api: "sensu-api.sensu.svc.cluster.local:8080"
+  namespace: "default"
+  command: "ruby -v"
+  interval: 60
+  publish: true
+  handlers: ["default"]
+  subscriptions: ["linux"]
+  runtime_assets: ["sensu-runtime-ruby"]
+  annotations: 
+    opsgenie_priority: "P4"

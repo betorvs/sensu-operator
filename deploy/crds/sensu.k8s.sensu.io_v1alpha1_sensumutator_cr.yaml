@@ -1,0 +1,10 @@
+apiVersion: sensu.k8s.sensu.io/v1alpha1
+kind: SensuMutator
+metadata:
+  name: example-sensumutator
+spec:
+  # Add fields here
+  name: "example"
+  sensu_backend_api: "sensu-api.sensu.svc.cluster.local:8080"
+  namespace: "default"
+  command: "example-command.go"

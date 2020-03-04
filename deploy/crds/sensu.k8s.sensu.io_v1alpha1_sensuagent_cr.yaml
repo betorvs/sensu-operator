@@ -1,0 +1,10 @@
+apiVersion: sensu.k8s.sensu.io/v1alpha1
+kind: SensuAgent
+metadata:
+  name: sensuagent
+spec:
+  # Add fields here
+  replicas: 1
+  subscriptions:
+    - linux
+    - alpine

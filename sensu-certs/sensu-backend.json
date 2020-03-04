@@ -1,0 +1,24 @@
+{
+  "CN": "sensu-api.example.local",
+  "hosts": [
+    "sensu-api",
+    "sensu-api.sensu",
+    "sensu-api.sensu.svc.cluster.local",
+    "sensu-api.example.local",
+    "sensu-websocket.example.local",
+    "sensu-dashboard.example.local"
+  ],
+  "key": {
+    "algo": "rsa",
+    "size": 4096
+  },
+  "names": [
+    {
+      "C": "BR",
+      "L": "Sao Paulo",
+      "O": "Sensu Backend",
+      "OU": "Sensu Backend",
+      "ST": "Sao Paulo"
+    }
+  ]
+}

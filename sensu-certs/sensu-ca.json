@@ -1,0 +1,20 @@
+{"CN": "Sensu CA",
+    "key": {
+        "algo": "rsa",
+        "size": 4096
+    },
+    "names": [
+        {
+               "C": "BR",
+               "L": "Sao Paulo",
+               "O": "Sensu",
+               "ST": "Sao Paulo"
+        }
+    ],
+    "signing":{
+        "default":{
+            "expiry":"43800h",
+            "usages":["signing","key encipherment","server auth","client auth"]
+        }
+}
+}
