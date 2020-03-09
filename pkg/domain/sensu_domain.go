@@ -33,7 +33,7 @@ type Payload struct {
 // SensuRepository interface
 type SensuRepository interface {
 	appcontext.Component
-	SensuHealth(sensuurl string) bool
+	SensuBackendHealth(sensuurl string) bool
 	SensuVersion(sensuurl string, version string) bool
 	GetSensuAPIToken(sensuurl string) string
 	CreateOperatorUserGetToken(sensuurl string) string

@@ -1,0 +1,27 @@
+language: go
+go:
+- 1.13.x
+services:
+- docker
+
+install:
+- curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh
+  | sh -s -- -b $(go env GOPATH)/bin v1.23.8
+- go get "github.com/operator-framework/operator-sdk"
+- echo "REPO $TRAVIS_REPO_SLUG TAG ${TRAVIS_TAG}"
+script:
+- "$(go env GOPATH)/bin/golangci-lint run --timeout 5m"
+- TESTRUN=true go test -v -race ./...
+- operator-sdk build betorvs/sensu-operator:${COMMIT}
+env:
+  global:
+  - COMMIT=${TRAVIS_COMMIT::8}
+deploy:
+  - provider: script
+    script: bash travis_deploy.sh "betorvs/sensu-operator" $COMMIT false
+    on:
+      branch: master
+  - provider: script
+    script: bash travis_deploy.sh "betorvs/sensu-operator" ${TRAVIS_TAG} true
+    on:
+      tags: true

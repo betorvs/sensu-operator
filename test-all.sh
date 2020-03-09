@@ -2,6 +2,11 @@
 # Simple script to check all objects created by sensu-operator
 # use these commands: kubectl, sensuctl, kubectx
 
+backend() {
+    kubectx docker-desktop
+    kubectl apply -f deploy/crds/sensu.k8s.sensu.io_v1alpha1_sensubackend_cr.yaml -n sensu
+}
+
 create() {
     kubectx docker-desktop
     kubectl apply -f deploy/crds/sensu.k8s.sensu.io_v1alpha1_sensuagent_cr.yaml -n sensu 
@@ -52,6 +57,9 @@ kubectl_get_all() {
 }
 
 case $1 in
+    "backend")
+        backend 
+    ;;
     "create")
         create
     ;;

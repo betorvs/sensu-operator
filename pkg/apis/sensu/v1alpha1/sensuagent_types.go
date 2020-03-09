@@ -34,6 +34,10 @@ type SensuAgentSpec struct {
 	// +kubebuilder:printcolumn:name="Subscriptions",type="set",JSONPath=".spec.Subscriptions",description="Sensu Agent Subscriptions list launched by the Sensu-Operator"
 	// +listType=set
 	Subscriptions []string `json:"subscriptions,omitempty"`
+	// +kubebuilder:printcolumn:name="SecretEnvFrom",type="string",JSONPath=".spec.SecretEnvFrom",description="Secret envFrom Option to startup a new instance with one secret inserted as envFrom launched by the Sensu-Operator"
+	SecretEnvFrom string `json:"secret_env_from,omitempty"`
+	// +kubebuilder:printcolumn:name="SecretVolume",type="string",JSONPath=".spec.SecretVolume",description="Secret Volume Option to startup a new instance with one secret mounted as Volume launched by the Sensu-Operator"
+	SecretVolume string `json:"secret_volume,omitempty"`
 }
 
 // SensuAgentStatus defines the observed state of SensuAgent

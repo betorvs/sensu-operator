@@ -529,6 +529,93 @@ func (r *ReconcileSensuBackend) newPodForCR(cr *sensuv1alpha1.SensuBackend, clus
 	} else {
 		setDebug = "--log-level info"
 	}
+	addEnvFrom := []corev1.EnvFromSource{}
+	if cr.Spec.SecretEnvFrom != "" {
+		addEnvFrom = []corev1.EnvFromSource{
+			{
+				SecretRef: &corev1.SecretEnvSource{
+					LocalObjectReference: corev1.LocalObjectReference{
+						Name: cr.Spec.SecretEnvFrom,
+					},
+				},
+			},
+		}
+	}
+	volumeMounts := []corev1.VolumeMount{
+		{
+			MountPath: "/certs",
+			Name:      "sensu-backend-pem",
+			ReadOnly:  true,
+		},
+		{
+			MountPath: "/certs-ca",
+			Name:      "sensu-ca-pem",
+			ReadOnly:  true,
+		},
+	}
+	volume := []corev1.Volume{
+		{
+			Name: "sensu-backend-pem",
+			VolumeSource: corev1.VolumeSource{
+				Secret: &corev1.SecretVolumeSource{
+					SecretName: "sensu-backend-pem",
+				},
+			},
+		},
+		{
+			Name: "sensu-ca-pem",
+			VolumeSource: corev1.VolumeSource{
+				Secret: &corev1.SecretVolumeSource{
+					SecretName: "sensu-ca-pem",
+				},
+			},
+		},
+	}
+	if cr.Spec.SecretVolume != "" {
+		volumeMounts = []corev1.VolumeMount{
+			{
+				MountPath: "/certs",
+				Name:      "sensu-backend-pem",
+				ReadOnly:  true,
+			},
+			{
+				MountPath: "/certs-ca",
+				Name:      "sensu-ca-pem",
+				ReadOnly:  true,
+			},
+			{
+				MountPath: "/etc/secrets",
+				Name:      cr.Spec.SecretVolume,
+				ReadOnly:  true,
+			},
+		}
+		volume = []corev1.Volume{
+			{
+				Name: "sensu-backend-pem",
+				VolumeSource: corev1.VolumeSource{
+					Secret: &corev1.SecretVolumeSource{
+						SecretName: "sensu-backend-pem",
+					},
+				},
+			},
+			{
+				Name: "sensu-ca-pem",
+				VolumeSource: corev1.VolumeSource{
+					Secret: &corev1.SecretVolumeSource{
+						SecretName: "sensu-ca-pem",
+					},
+				},
+			},
+			{
+				Name: cr.Spec.SecretVolume,
+				VolumeSource: corev1.VolumeSource{
+					Secret: &corev1.SecretVolumeSource{
+						SecretName: cr.Spec.SecretVolume,
+					},
+				},
+			},
+		}
+	}
 	pod := &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      cr.Name + fmt.Sprintf("-%d", ordinal),
@@ -570,18 +657,8 @@ func (r *ReconcileSensuBackend) newPodForCR(cr *sensuv1alpha1.SensuBackend, clus
 							Name:          "dashboard",
 						},
 					},
-					VolumeMounts: []corev1.VolumeMount{
-						{
-							MountPath: "/certs",
-							Name:      "sensu-backend-pem",
-							ReadOnly:  true,
-						},
-						{
-							MountPath: "/certs-ca",
-							Name:      "sensu-ca-pem",
-							ReadOnly:  true,
-						},
-					},
+					VolumeMounts: volumeMounts,
+					EnvFrom:      addEnvFrom,
 					Env: []corev1.EnvVar{
 						{
 							Name:  "SENSU_BACKEND_CLUSTER_ADMIN_USERNAME",
@@ -599,24 +676,7 @@ func (r *ReconcileSensuBackend) newPodForCR(cr *sensuv1alpha1.SensuBackend, clus
 					},
 				},
 			},
-			Volumes: []corev1.Volume{
-				{
-					Name: "sensu-backend-pem",
-					VolumeSource: corev1.VolumeSource{
-						Secret: &corev1.SecretVolumeSource{
-							SecretName: "sensu-backend-pem",
-						},
-					},
-				},
-				{
-					Name: "sensu-ca-pem",
-					VolumeSource: corev1.VolumeSource{
-						Secret: &corev1.SecretVolumeSource{
-							SecretName: "sensu-ca-pem",
-						},
-					},
-				},
-			},
+			Volumes: volume,
 		},
 	}
 	// Set SensuBackend instance as the owner and controller

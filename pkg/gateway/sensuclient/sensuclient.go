@@ -218,8 +218,8 @@ func (repo SensuRepository) getMemberID(sensuurl string, token string, member st
 	return notFound
 }
 
-// SensuHealth func
-func (repo SensuRepository) SensuHealth(sensuurl string) bool {
+// SensuBackendHealth func
+func (repo SensuRepository) SensuBackendHealth(sensuurl string) bool {
 	sensuURL := fmt.Sprintf("%s/health", sensuurl)
 	req, err := http.NewRequest("GET", sensuURL, nil)
 	if err != nil {

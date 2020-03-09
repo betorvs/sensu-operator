@@ -8,3 +8,8 @@ spec:
   subscriptions:
     - linux
     - alpine
+  # will mount Secret name sensu-agent-extra as envFrom 
+  # More info: https://kubernetes.io/docs/tasks/inject-data-application/distribute-credentials-secure/#configure-all-key-value-pairs-in-a-secret-as-container-environment-variables
+  secret_env_from: sensu-agent-extra
+  # will mount Secret name sensu-agent-extra in /etc/secrets
+  secret_volume: sensu-agent-extra

@@ -110,6 +110,13 @@ func (r *ReconcileSensuAgent) Reconcile(request reconcile.Request) (reconcile.Re
 		return reconcile.Result{}, err
 	}
 
+	// try to update deployment
+	reqLogger.Info("Try to Update Deployment", "Deployment.Namespace", deploy.Namespace, "Deployment.Name", deploy.Name)
+	err = r.client.Update(context.TODO(), deploy)
+	if err != nil {
+		return reconcile.Result{}, err
+	}
+
 	// Pod already exists - don't requeue
 	reqLogger.Info("Skip reconcile: Deployment already exists", "Deployment.Namespace", found.Namespace, "Deployment.Name", found.Name)
 	return reconcile.Result{}, nil
@@ -162,6 +169,66 @@ func (r *ReconcileSensuAgent) newDeploymentForCR(cr *sensuv1alpha1.SensuAgent) *
 	} else {
 		subscriptions = fmt.Sprintf("--subscriptions %s", strings.Join(cr.Spec.Subscriptions, ","))
 	}
+	addEnvFrom := []corev1.EnvFromSource{}
+	if cr.Spec.SecretEnvFrom != "" {
+		addEnvFrom = []corev1.EnvFromSource{
+			{
+				SecretRef: &corev1.SecretEnvSource{
+					LocalObjectReference: corev1.LocalObjectReference{
+						Name: cr.Spec.SecretEnvFrom,
+					},
+				},
+			},
+		}
+	}
+	volumeMounts := []corev1.VolumeMount{{
+		MountPath: "/certs-ca",
+		Name:      secretCertificate,
+		ReadOnly:  true,
+	}}
+	volume := []corev1.Volume{
+		{
+			Name: secretCertificate,
+			VolumeSource: corev1.VolumeSource{
+				Secret: &corev1.SecretVolumeSource{
+					SecretName: secretCertificate,
+				},
+			},
+		},
+	}
+	if cr.Spec.SecretVolume != "" {
+		volumeMounts = []corev1.VolumeMount{
+			{
+				MountPath: "/certs-ca",
+				Name:      secretCertificate,
+				ReadOnly:  true,
+			},
+			{
+				MountPath: "/etc/secrets",
+				Name:      cr.Spec.SecretVolume,
+				ReadOnly:  true,
+			},
+		}
+		volume = []corev1.Volume{
+			{
+				Name: secretCertificate,
+				VolumeSource: corev1.VolumeSource{
+					Secret: &corev1.SecretVolumeSource{
+						SecretName: secretCertificate,
+					},
+				},
+			},
+			{
+				Name: cr.Spec.SecretVolume,
+				VolumeSource: corev1.VolumeSource{
+					Secret: &corev1.SecretVolumeSource{
+						SecretName: cr.Spec.SecretVolume,
+					},
+				},
+			},
+		}
+	}
+
 	deploy := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      cr.Name + "-agent",
@@ -195,29 +262,16 @@ func (r *ReconcileSensuAgent) newDeploymentForCR(cr *sensuv1alpha1.SensuAgent) *
 									Value: sensuBackendWebsocket,
 								},
 							},
-							VolumeMounts: []corev1.VolumeMount{
-								{
-									MountPath: "/certs-ca",
-									Name:      secretCertificate,
-									ReadOnly:  true,
-								},
-							},
+							EnvFrom:      addEnvFrom,
+							VolumeMounts: volumeMounts,
 						},
 					},
-					Volumes: []corev1.Volume{
-						{
-							Name: secretCertificate,
-							VolumeSource: corev1.VolumeSource{
-								Secret: &corev1.SecretVolumeSource{
-									SecretName: secretCertificate,
-								},
-							},
-						},
-					},
+					Volumes: volume,
 				},
 			},
 		},
 	}
+
 	// Set SensuBackend instance as the owner and controller
 	_ = controllerutil.SetControllerReference(cr, deploy, r.scheme)
 	return deploy

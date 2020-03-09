@@ -27,6 +27,10 @@ type SensuBackendSpec struct {
 	Image string `json:"image"`
 	// +kubebuilder:printcolumn:name="DebugSensu",type="string",JSONPath=".spec.DebugSensu",description="Sensu Debug Option to startup a new instance with debug launched by the Sensu-Operator"
 	DebugSensu bool `json:"debug"`
+	// +kubebuilder:printcolumn:name="SecretEnvFrom",type="string",JSONPath=".spec.SecretEnvFrom",description="Secret envFrom Option to startup a new instance with one secret inserted as envFrom launched by the Sensu-Operator"
+	SecretEnvFrom string `json:"secret_env_from,omitempty"`
+	// +kubebuilder:printcolumn:name="SecretVolume",type="string",JSONPath=".spec.SecretVolume",description="Secret Volume Option to startup a new instance with one secret mounted as Volume launched by the Sensu-Operator"
+	SecretVolume string `json:"secret_volume,omitempty"`
 }
 
 // SensuBackendStatus defines the observed state of SensuBackend
