@@ -493,6 +493,9 @@ func (repo SensuRepository) DeleteResource(sensuurl string, token string, namesp
 
 // init func to start http client
 func init() {
+	if config.GetEnv("TESTRUN", "false") == "true" {
+		return
+	}
 	client := http.Client{
 		Timeout: time.Second * 10,
 	}

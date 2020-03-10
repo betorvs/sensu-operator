@@ -25,7 +25,8 @@ var (
 	RequeueTime time.Duration
 )
 
-func getEnv(key, defaultValue string) string {
+// GetEnv func return a default value if dont find a environment variable
+func GetEnv(key, defaultValue string) string {
 	if value, ok := os.LookupEnv(key); ok {
 		return value
 	}
@@ -33,14 +34,14 @@ func getEnv(key, defaultValue string) string {
 }
 
 func init() {
-	DefaultUser = getEnv("SENSU_BACKEND_CLUSTER_ADMIN_USERNAME", "admin")
-	DefaultPassword = getEnv("SENSU_BACKEND_CLUSTER_ADMIN_PASSWORD", "P@ssw0rd!2GO")
-	OperatorSensuUser = getEnv("OPERATOR_SENSU_USER", "sensu-operator")
-	OperatorSensuPassword = getEnv("OPERATOR_SENSU_PASSWORD", "P@ssw0rd!2GO")
-	CACertificate = getEnv("SENSU_CA_CERTIFICATE", "ABSENT")
-	SensuImageTag = getEnv("SENSU_IMAGE_TAG", "5.18.0")
-	GatewayDebug = getEnv("OPERATOR_GATEWAY_DEBUG", "false")
-	timeout := getEnv("OPERATOR_REQUEUE_TIME", "300")
+	DefaultUser = GetEnv("SENSU_BACKEND_CLUSTER_ADMIN_USERNAME", "admin")
+	DefaultPassword = GetEnv("SENSU_BACKEND_CLUSTER_ADMIN_PASSWORD", "P@ssw0rd!2GO")
+	OperatorSensuUser = GetEnv("OPERATOR_SENSU_USER", "sensu-operator")
+	OperatorSensuPassword = GetEnv("OPERATOR_SENSU_PASSWORD", "P@ssw0rd!2GO")
+	CACertificate = GetEnv("SENSU_CA_CERTIFICATE", "ABSENT")
+	SensuImageTag = GetEnv("SENSU_IMAGE_TAG", "5.18.0")
+	GatewayDebug = GetEnv("OPERATOR_GATEWAY_DEBUG", "false")
+	timeout := GetEnv("OPERATOR_REQUEUE_TIME", "300")
 	tmpTimeout, err := strconv.Atoi(timeout)
 	if err != nil {
 		tmpTimeout = 300

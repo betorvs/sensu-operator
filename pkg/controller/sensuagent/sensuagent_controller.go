@@ -231,7 +231,7 @@ func (r *ReconcileSensuAgent) newDeploymentForCR(cr *sensuv1alpha1.SensuAgent) *
 
 	deploy := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      cr.Name + "-agent",
+			Name:      cr.Name,
 			Namespace: cr.Namespace,
 			Labels:    labels,
 		},

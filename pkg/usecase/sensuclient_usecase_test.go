@@ -4,306 +4,165 @@ import (
 	"testing"
 
 	"github.com/betorvs/sensu-operator/pkg/appcontext"
+	"github.com/betorvs/sensu-operator/utiltests"
 	v2 "github.com/sensu/sensu-go/api/core/v2"
 )
 
-const (
-	fakeSensuURL = "http://sensu-api.svc.cluster.local:8080"
-)
-
-var (
-	SensuBackendHealthCalls           int
-	SensuVersionCalls                 int
-	GetSensuAPITokenCalls             int
-	CreateOperatorUserGetTokenCalls   int
-	GetOperatorUserSensuAPITokenCalls int
-	SensuTestTokenCalls               int
-	GetClusterIDCalls                 int
-	CheckMemberExistCalls             int
-	AddNewMemberCalls                 int
-	RemoveMemberCalls                 int
-	AddResourceCalls                  int
-	AddAssetsCalls                    int
-	AddNamespacesCalls                int
-	AddChecksCalls                    int
-	AddHandlersCalls                  int
-	AddFiltersCalls                   int
-	AddMutatorsCalls                  int
-	CheckResourceExistCalls           int
-	CheckAssetsExistCalls             int
-	CheckNamespacesExistCalls         int
-	ChecksExistCalls                  int
-	CheckHandlersExistCalls           int
-	CheckFiltersExistCalls            int
-	CheckMutatorsExistCalls           int
-	DeleteResourceCalls               int
-	DeleteAssetsCalls                 int
-	DeleteNamespacesCalls             int
-	DeleteChecksCalls                 int
-	DeleteHandlersCalls               int
-	DeleteFiltersCalls                int
-	DeleteMutatorsCalls               int
-)
-
-type SensuRepositoryMock struct {
-}
-
-func (repo SensuRepositoryMock) SensuBackendHealth(sensuurl string) bool {
-	SensuBackendHealthCalls++
-	return true
-}
-func (repo SensuRepositoryMock) SensuVersion(sensuurl string, version string) bool {
-	SensuVersionCalls++
-	return true
-}
-func (repo SensuRepositoryMock) GetSensuAPIToken(sensuurl string) string {
-	GetSensuAPITokenCalls++
-	return ""
-}
-func (repo SensuRepositoryMock) CreateOperatorUserGetToken(sensuurl string) string {
-	CreateOperatorUserGetTokenCalls++
-	return ""
-}
-func (repo SensuRepositoryMock) GetOperatorUserSensuAPIToken(sensuurl string) string {
-	GetOperatorUserSensuAPITokenCalls++
-	return ""
-}
-func (repo SensuRepositoryMock) SensuTestToken(sensuurl string, token string) bool {
-	SensuTestTokenCalls++
-	return true
-}
-func (repo SensuRepositoryMock) GetClusterID(sensuurl string, token string) string {
-	GetClusterIDCalls++
-	return ""
-}
-func (repo SensuRepositoryMock) CheckMemberExist(sensuurl string, token string, member string) bool {
-	CheckMemberExistCalls++
-	return true
-}
-func (repo SensuRepositoryMock) AddNewMember(sensuurl string, token string, member string) error {
-	AddNewMemberCalls++
-	return nil
-}
-func (repo SensuRepositoryMock) RemoveMember(sensuurl string, token string, member string) error {
-	RemoveMemberCalls++
-	return nil
-}
-func (repo SensuRepositoryMock) CheckResourceExist(sensuurl string, token string, resource string, namespace string, name string) bool {
-	switch resource {
-	case "assets":
-		CheckAssetsExistCalls++
-	case "namespaces":
-		CheckNamespacesExistCalls++
-	case "checks":
-		ChecksExistCalls++
-	case "handlers":
-		CheckHandlersExistCalls++
-	case "filters":
-		CheckFiltersExistCalls++
-	case "mutators":
-		CheckMutatorsExistCalls++
-	default:
-		CheckResourceExistCalls++
-	}
-
-	return true
-}
-func (repo SensuRepositoryMock) AddResource(sensuurl string, token string, resource string, namespace string, bodymarshal []byte) error {
-
-	switch resource {
-	case "assets":
-		AddAssetsCalls++
-	case "namespaces":
-		AddNamespacesCalls++
-	case "checks":
-		AddChecksCalls++
-	case "handlers":
-		AddHandlersCalls++
-	case "filters":
-		AddFiltersCalls++
-	case "mutators":
-		AddMutatorsCalls++
-	default:
-		AddResourceCalls++
-	}
-	return nil
-}
-func (repo SensuRepositoryMock) DeleteResource(sensuurl string, token string, namespace string, resource string, name string) error {
-	switch resource {
-	case "assets":
-		DeleteAssetsCalls++
-	case "namespaces":
-		DeleteNamespacesCalls++
-	case "checks":
-		DeleteChecksCalls++
-	case "handlers":
-		DeleteHandlersCalls++
-	case "filters":
-		DeleteFiltersCalls++
-	case "mutators":
-		DeleteMutatorsCalls++
-	default:
-		DeleteResourceCalls++
-	}
-
-	return nil
-}
-
 func TestSensuHealth(t *testing.T) {
-	repo := SensuRepositoryMock{}
+	repo := utiltests.SensuRepositoryMock{}
 	appcontext.Current.Add(appcontext.SensuRepository, repo)
-	_ = SensuHealth(fakeSensuURL)
+	_ = SensuHealth(utiltests.FakeSensuURL)
 	expected := 1
-	if SensuBackendHealthCalls != expected {
-		t.Fatalf("Invalid 1.1 TestSensuHealth %d", SensuBackendHealthCalls)
+	if utiltests.SensuBackendHealthCalls != expected {
+		t.Fatalf("Invalid 1.1 TestSensuHealth %d", utiltests.SensuBackendHealthCalls)
 	}
 }
 func TestSensuVersion(t *testing.T) {
-	repo := SensuRepositoryMock{}
+	repo := utiltests.SensuRepositoryMock{}
 	appcontext.Current.Add(appcontext.SensuRepository, repo)
-	_ = SensuVersion(fakeSensuURL, "5.18.0")
+	_ = SensuVersion(utiltests.FakeSensuURL, "5.18.0")
 	expected := 1
-	if SensuVersionCalls != expected {
-		t.Fatalf("Invalid 2.1 TestSensuVersion %d", SensuVersionCalls)
+	if utiltests.SensuVersionCalls != expected {
+		t.Fatalf("Invalid 2.1 TestSensuVersion %d", utiltests.SensuVersionCalls)
 	}
 }
 func TestGetSensuAPIToken(t *testing.T) {
-	repo := SensuRepositoryMock{}
+	repo := utiltests.SensuRepositoryMock{}
 	appcontext.Current.Add(appcontext.SensuRepository, repo)
-	_ = GetSensuAPIToken(fakeSensuURL)
+	_ = GetSensuAPIToken(utiltests.FakeSensuURL)
 	expected := 1
-	if GetSensuAPITokenCalls != expected {
-		t.Fatalf("Invalid 3.1 TestGetSensuAPIToken %d", GetSensuAPITokenCalls)
+	if utiltests.GetSensuAPITokenCalls != expected {
+		t.Fatalf("Invalid 3.1 TestGetSensuAPIToken %d", utiltests.GetSensuAPITokenCalls)
 	}
 }
 func TestCreateOperatorUserGetToken(t *testing.T) {
-	repo := SensuRepositoryMock{}
+	repo := utiltests.SensuRepositoryMock{}
 	appcontext.Current.Add(appcontext.SensuRepository, repo)
-	_ = CreateOperatorUserGetToken(fakeSensuURL)
+	_ = CreateOperatorUserGetToken(utiltests.FakeSensuURL)
 	expected := 1
-	if CreateOperatorUserGetTokenCalls != expected {
-		t.Fatalf("Invalid 4.1 TestCreateOperatorUserGetToke %d", CreateOperatorUserGetTokenCalls)
+	if utiltests.CreateOperatorUserGetTokenCalls != expected {
+		t.Fatalf("Invalid 4.1 TestCreateOperatorUserGetToke %d", utiltests.CreateOperatorUserGetTokenCalls)
 	}
 }
 func TestGetOperatorUserSensuAPIToken(t *testing.T) {
-	repo := SensuRepositoryMock{}
+	repo := utiltests.SensuRepositoryMock{}
 	appcontext.Current.Add(appcontext.SensuRepository, repo)
-	_ = GetOperatorUserSensuAPIToken(fakeSensuURL)
+	_ = GetOperatorUserSensuAPIToken(utiltests.FakeSensuURL)
 	expected := 1
-	if GetOperatorUserSensuAPITokenCalls != expected {
-		t.Fatalf("Invalid 5.1 TestGetOperatorUserSensuAPIToken %d", GetOperatorUserSensuAPITokenCalls)
+	if utiltests.GetOperatorUserSensuAPITokenCalls != expected {
+		t.Fatalf("Invalid 5.1 TestGetOperatorUserSensuAPIToken %d", utiltests.GetOperatorUserSensuAPITokenCalls)
 	}
 }
 func TestSensuTestToken(t *testing.T) {
-	repo := SensuRepositoryMock{}
+	repo := utiltests.SensuRepositoryMock{}
 	appcontext.Current.Add(appcontext.SensuRepository, repo)
-	_ = SensuTestToken(fakeSensuURL, "aaaaaqqqqqwwww")
+	_ = SensuTestToken(utiltests.FakeSensuURL, "aaaaaqqqqqwwww")
 	expected := 1
-	if SensuTestTokenCalls != expected {
-		t.Fatalf("Invalid 6.1 TestSensuTestToken %d", SensuTestTokenCalls)
+	if utiltests.SensuTestTokenCalls != expected {
+		t.Fatalf("Invalid 6.1 TestSensuTestToken %d", utiltests.SensuTestTokenCalls)
 	}
 }
 func TestGetClusterID(t *testing.T) {
-	repo := SensuRepositoryMock{}
+	repo := utiltests.SensuRepositoryMock{}
 	appcontext.Current.Add(appcontext.SensuRepository, repo)
-	_ = GetClusterID(fakeSensuURL, "aaaaaqqqqqwwww")
+	_ = GetClusterID(utiltests.FakeSensuURL, "aaaaaqqqqqwwww")
 	expected := 1
-	if GetClusterIDCalls != expected {
-		t.Fatalf("Invalid 7.1 TestGetClusterID %d", GetClusterIDCalls)
+	if utiltests.GetClusterIDCalls != expected {
+		t.Fatalf("Invalid 7.1 TestGetClusterID %d", utiltests.GetClusterIDCalls)
 	}
 }
 func TestCheckMemberExist(t *testing.T) {
-	repo := SensuRepositoryMock{}
+	repo := utiltests.SensuRepositoryMock{}
 	appcontext.Current.Add(appcontext.SensuRepository, repo)
-	_ = CheckMemberExist(fakeSensuURL, "aaaaaqqqqqwwww", "sensubackend-3")
+	_ = CheckMemberExist(utiltests.FakeSensuURL, "aaaaaqqqqqwwww", "sensubackend-3")
 	expected := 1
-	if CheckMemberExistCalls != expected {
-		t.Fatalf("Invalid 8.1 TestCheckMemberExist %d", CheckMemberExistCalls)
+	if utiltests.CheckMemberExistCalls != expected {
+		t.Fatalf("Invalid 8.1 TestCheckMemberExist %d", utiltests.CheckMemberExistCalls)
 	}
 }
 
 func TestAddNewMember(t *testing.T) {
-	repo := SensuRepositoryMock{}
+	repo := utiltests.SensuRepositoryMock{}
 	appcontext.Current.Add(appcontext.SensuRepository, repo)
-	_ = AddNewMember(fakeSensuURL, "aaaaaqqqqqwwww", "sensubackend-3")
+	_ = AddNewMember(utiltests.FakeSensuURL, "aaaaaqqqqqwwww", "sensubackend-3")
 	expected := 1
-	if AddNewMemberCalls != expected {
-		t.Fatalf("Invalid 9.1 TestAddNewMember %d", AddNewMemberCalls)
+	if utiltests.AddNewMemberCalls != expected {
+		t.Fatalf("Invalid 9.1 TestAddNewMember %d", utiltests.AddNewMemberCalls)
 	}
 }
 
 func TestRemoveMember(t *testing.T) {
-	repo := SensuRepositoryMock{}
+	repo := utiltests.SensuRepositoryMock{}
 	appcontext.Current.Add(appcontext.SensuRepository, repo)
-	_ = RemoveMember(fakeSensuURL, "aaaaaqqqqqwwww", "sensubackend-3")
+	_ = RemoveMember(utiltests.FakeSensuURL, "aaaaaqqqqqwwww", "sensubackend-3")
 	expected := 1
-	if RemoveMemberCalls != expected {
-		t.Fatalf("Invalid 10.1 TestRemoveMember %d", RemoveMemberCalls)
+	if utiltests.RemoveMemberCalls != expected {
+		t.Fatalf("Invalid 10.1 TestRemoveMember %d", utiltests.RemoveMemberCalls)
 	}
 }
 
 func TestCheckAssetExist(t *testing.T) {
-	repo := SensuRepositoryMock{}
+	repo := utiltests.SensuRepositoryMock{}
 	appcontext.Current.Add(appcontext.SensuRepository, repo)
-	_ = CheckAssetExist(fakeSensuURL, "aaaaaqqqqqwwww", "default", "test")
+	_ = CheckAssetExist(utiltests.FakeSensuURL, "aaaaaqqqqqwwww", "default", "test")
 	expected := 1
-	if CheckAssetsExistCalls != expected {
-		t.Fatalf("Invalid 11.1 TestCheckAssetExist %d", CheckAssetsExistCalls)
+	if utiltests.CheckAssetsExistCalls != expected {
+		t.Fatalf("Invalid 11.1 TestCheckAssetExist %d", utiltests.CheckAssetsExistCalls)
 	}
 }
 
 func TestCheckExist(t *testing.T) {
-	repo := SensuRepositoryMock{}
+	repo := utiltests.SensuRepositoryMock{}
 	appcontext.Current.Add(appcontext.SensuRepository, repo)
-	_ = CheckExist(fakeSensuURL, "aaaaaqqqqqwwww", "default", "test")
+	_ = CheckExist(utiltests.FakeSensuURL, "aaaaaqqqqqwwww", "default", "test")
 	expected := 1
-	if ChecksExistCalls != expected {
-		t.Fatalf("Invalid 11.2 TestCheckExist %d", ChecksExistCalls)
+	if utiltests.ChecksExistCalls != expected {
+		t.Fatalf("Invalid 11.2 TestCheckExist %d", utiltests.ChecksExistCalls)
 	}
 }
 
 func TestCheckNamespaceExist(t *testing.T) {
-	repo := SensuRepositoryMock{}
+	repo := utiltests.SensuRepositoryMock{}
 	appcontext.Current.Add(appcontext.SensuRepository, repo)
-	_ = CheckNamespaceExist(fakeSensuURL, "aaaaaqqqqqwwww", "default")
+	_ = CheckNamespaceExist(utiltests.FakeSensuURL, "aaaaaqqqqqwwww", "default")
 	expected := 1
-	if CheckNamespacesExistCalls != expected {
-		t.Fatalf("Invalid 11.3 TestCheckNamespaceExist %d", CheckNamespacesExistCalls)
+	if utiltests.CheckNamespacesExistCalls != expected {
+		t.Fatalf("Invalid 11.3 TestCheckNamespaceExist %d", utiltests.CheckNamespacesExistCalls)
 	}
 }
 
 func TestCheckHandlerExist(t *testing.T) {
-	repo := SensuRepositoryMock{}
+	repo := utiltests.SensuRepositoryMock{}
 	appcontext.Current.Add(appcontext.SensuRepository, repo)
-	_ = CheckHandlerExist(fakeSensuURL, "aaaaaqqqqqwwww", "default", "test")
+	_ = CheckHandlerExist(utiltests.FakeSensuURL, "aaaaaqqqqqwwww", "default", "test")
 	expected := 1
-	if CheckHandlersExistCalls != expected {
-		t.Fatalf("Invalid 11.4 TestHandlerAssetExist %d", CheckHandlersExistCalls)
+	if utiltests.CheckHandlersExistCalls != expected {
+		t.Fatalf("Invalid 11.4 TestHandlerAssetExist %d", utiltests.CheckHandlersExistCalls)
 	}
 }
 
 func TestCheckFilterExist(t *testing.T) {
-	repo := SensuRepositoryMock{}
+	repo := utiltests.SensuRepositoryMock{}
 	appcontext.Current.Add(appcontext.SensuRepository, repo)
-	_ = CheckFilterExist(fakeSensuURL, "aaaaaqqqqqwwww", "default", "test")
+	_ = CheckFilterExist(utiltests.FakeSensuURL, "aaaaaqqqqqwwww", "default", "test")
 	expected := 1
-	if CheckFiltersExistCalls != expected {
-		t.Fatalf("Invalid 11.5 TestCheckFilterExist %d", CheckFiltersExistCalls)
+	if utiltests.CheckFiltersExistCalls != expected {
+		t.Fatalf("Invalid 11.5 TestCheckFilterExist %d", utiltests.CheckFiltersExistCalls)
 	}
 }
 
 func TestCheckMutatorExist(t *testing.T) {
-	repo := SensuRepositoryMock{}
+	repo := utiltests.SensuRepositoryMock{}
 	appcontext.Current.Add(appcontext.SensuRepository, repo)
-	_ = CheckMutatorExist(fakeSensuURL, "aaaaaqqqqqwwww", "default", "test")
+	_ = CheckMutatorExist(utiltests.FakeSensuURL, "aaaaaqqqqqwwww", "default", "test")
 	expected := 1
-	if CheckMutatorsExistCalls != expected {
-		t.Fatalf("Invalid 11.6 TestCheckMutatorExist %d", CheckMutatorsExistCalls)
+	if utiltests.CheckMutatorsExistCalls != expected {
+		t.Fatalf("Invalid 11.6 TestCheckMutatorExist %d", utiltests.CheckMutatorsExistCalls)
 	}
 }
 
 func TestAddAsset(t *testing.T) {
-	repo := SensuRepositoryMock{}
+	repo := utiltests.SensuRepositoryMock{}
 	appcontext.Current.Add(appcontext.SensuRepository, repo)
 	sensuAsset := &v2.Asset{
 		URL:    "https://bonsai.sensu.io",
@@ -313,25 +172,25 @@ func TestAddAsset(t *testing.T) {
 			Namespace: "default",
 		},
 	}
-	_ = AddAsset(fakeSensuURL, "aaaaaqqqqqwwww", "default", sensuAsset)
+	_ = AddAsset(utiltests.FakeSensuURL, "aaaaaqqqqqwwww", "default", sensuAsset)
 	expected := 1
-	if AddAssetsCalls != expected {
-		t.Fatalf("Invalid 12.1 TestAddAsset %d", AddAssetsCalls)
+	if utiltests.AddAssetsCalls != expected {
+		t.Fatalf("Invalid 12.1 TestAddAsset %d", utiltests.AddAssetsCalls)
 	}
 }
 
 func TestAddNamespace(t *testing.T) {
-	repo := SensuRepositoryMock{}
+	repo := utiltests.SensuRepositoryMock{}
 	appcontext.Current.Add(appcontext.SensuRepository, repo)
-	_ = AddNamespace(fakeSensuURL, "aaaaaqqqqqwwww", "test")
+	_ = AddNamespace(utiltests.FakeSensuURL, "aaaaaqqqqqwwww", "test")
 	expected := 1
-	if AddNamespacesCalls != expected {
-		t.Fatalf("Invalid 12.2 TestAddNamespace %d", AddNamespacesCalls)
+	if utiltests.AddNamespacesCalls != expected {
+		t.Fatalf("Invalid 12.2 TestAddNamespace %d", utiltests.AddNamespacesCalls)
 	}
 }
 
 func TestAddCheck(t *testing.T) {
-	repo := SensuRepositoryMock{}
+	repo := utiltests.SensuRepositoryMock{}
 	appcontext.Current.Add(appcontext.SensuRepository, repo)
 	sensuCheck := &v2.Check{
 		Subscriptions: []string{"test"},
@@ -344,15 +203,15 @@ func TestAddCheck(t *testing.T) {
 			Namespace: "default",
 		},
 	}
-	_ = AddCheck(fakeSensuURL, "aaaaaqqqqqwwww", "default", sensuCheck)
+	_ = AddCheck(utiltests.FakeSensuURL, "aaaaaqqqqqwwww", "default", sensuCheck)
 	expected := 1
-	if AddChecksCalls != expected {
-		t.Fatalf("Invalid 12.3 TestAddChecks %d", AddChecksCalls)
+	if utiltests.AddChecksCalls != expected {
+		t.Fatalf("Invalid 12.3 TestAddChecks %d", utiltests.AddChecksCalls)
 	}
 }
 
 func TestAddHandler(t *testing.T) {
-	repo := SensuRepositoryMock{}
+	repo := utiltests.SensuRepositoryMock{}
 	appcontext.Current.Add(appcontext.SensuRepository, repo)
 	sensuHandler := &v2.Handler{
 		Type:     "pipe",
@@ -363,15 +222,15 @@ func TestAddHandler(t *testing.T) {
 			Namespace: "default",
 		},
 	}
-	_ = AddHandler(fakeSensuURL, "aaaaaqqqqqwwww", "default", sensuHandler)
+	_ = AddHandler(utiltests.FakeSensuURL, "aaaaaqqqqqwwww", "default", sensuHandler)
 	expected := 1
-	if AddHandlersCalls != expected {
-		t.Fatalf("Invalid 12.4 TestAddHandler %d", AddHandlersCalls)
+	if utiltests.AddHandlersCalls != expected {
+		t.Fatalf("Invalid 12.4 TestAddHandler %d", utiltests.AddHandlersCalls)
 	}
 }
 
 func TestAddFilter(t *testing.T) {
-	repo := SensuRepositoryMock{}
+	repo := utiltests.SensuRepositoryMock{}
 	appcontext.Current.Add(appcontext.SensuRepository, repo)
 	sensuFilter := &v2.EventFilter{
 		Action:      "allow",
@@ -381,15 +240,15 @@ func TestAddFilter(t *testing.T) {
 			Namespace: "default",
 		},
 	}
-	_ = AddFilter(fakeSensuURL, "aaaaaqqqqqwwww", "default", sensuFilter)
+	_ = AddFilter(utiltests.FakeSensuURL, "aaaaaqqqqqwwww", "default", sensuFilter)
 	expected := 1
-	if AddFiltersCalls != expected {
-		t.Fatalf("Invalid 12.5 TestAddFilter %d", AddFiltersCalls)
+	if utiltests.AddFiltersCalls != expected {
+		t.Fatalf("Invalid 12.5 TestAddFilter %d", utiltests.AddFiltersCalls)
 	}
 }
 
 func TestAddMutator(t *testing.T) {
-	repo := SensuRepositoryMock{}
+	repo := utiltests.SensuRepositoryMock{}
 	appcontext.Current.Add(appcontext.SensuRepository, repo)
 	sensuMutator := &v2.Mutator{
 		Command: "echo",
@@ -398,69 +257,69 @@ func TestAddMutator(t *testing.T) {
 			Namespace: "default",
 		},
 	}
-	_ = AddMutator(fakeSensuURL, "aaaaaqqqqqwwww", "default", sensuMutator)
+	_ = AddMutator(utiltests.FakeSensuURL, "aaaaaqqqqqwwww", "default", sensuMutator)
 	expected := 1
-	if AddMutatorsCalls != expected {
-		t.Fatalf("Invalid 12.6 TestAddMutator %d", AddMutatorsCalls)
+	if utiltests.AddMutatorsCalls != expected {
+		t.Fatalf("Invalid 12.6 TestAddMutator %d", utiltests.AddMutatorsCalls)
 	}
 }
 
 func TestDeleteAsset(t *testing.T) {
-	repo := SensuRepositoryMock{}
+	repo := utiltests.SensuRepositoryMock{}
 	appcontext.Current.Add(appcontext.SensuRepository, repo)
-	_ = DeleteAsset(fakeSensuURL, "aaaaaqqqqqwwww", "default", "test")
+	_ = DeleteAsset(utiltests.FakeSensuURL, "aaaaaqqqqqwwww", "default", "test")
 	expected := 1
-	if DeleteAssetsCalls != expected {
-		t.Fatalf("Invalid 13.1 TestDeleteAsset %d", DeleteAssetsCalls)
+	if utiltests.DeleteAssetsCalls != expected {
+		t.Fatalf("Invalid 13.1 TestDeleteAsset %d", utiltests.DeleteAssetsCalls)
 	}
 }
 
 func TestDeleteNamespace(t *testing.T) {
-	repo := SensuRepositoryMock{}
+	repo := utiltests.SensuRepositoryMock{}
 	appcontext.Current.Add(appcontext.SensuRepository, repo)
-	_ = DeleteNamespace(fakeSensuURL, "aaaaaqqqqqwwww", "default")
+	_ = DeleteNamespace(utiltests.FakeSensuURL, "aaaaaqqqqqwwww", "default")
 	expected := 1
-	if DeleteNamespacesCalls != expected {
-		t.Fatalf("Invalid 13.2 TestDeleteNamespace %d", DeleteNamespacesCalls)
+	if utiltests.DeleteNamespacesCalls != expected {
+		t.Fatalf("Invalid 13.2 TestDeleteNamespace %d", utiltests.DeleteNamespacesCalls)
 	}
 }
 
 func TestDeleteCheck(t *testing.T) {
-	repo := SensuRepositoryMock{}
+	repo := utiltests.SensuRepositoryMock{}
 	appcontext.Current.Add(appcontext.SensuRepository, repo)
-	_ = DeleteCheck(fakeSensuURL, "aaaaaqqqqqwwww", "default", "test")
+	_ = DeleteCheck(utiltests.FakeSensuURL, "aaaaaqqqqqwwww", "default", "test")
 	expected := 1
-	if DeleteChecksCalls != expected {
-		t.Fatalf("Invalid 13.3 TestDeleteCheck %d", DeleteChecksCalls)
+	if utiltests.DeleteChecksCalls != expected {
+		t.Fatalf("Invalid 13.3 TestDeleteCheck %d", utiltests.DeleteChecksCalls)
 	}
 }
 
 func TestDeleteHandler(t *testing.T) {
-	repo := SensuRepositoryMock{}
+	repo := utiltests.SensuRepositoryMock{}
 	appcontext.Current.Add(appcontext.SensuRepository, repo)
-	_ = DeleteHandler(fakeSensuURL, "aaaaaqqqqqwwww", "default", "test")
+	_ = DeleteHandler(utiltests.FakeSensuURL, "aaaaaqqqqqwwww", "default", "test")
 	expected := 1
-	if DeleteHandlersCalls != expected {
-		t.Fatalf("Invalid 13.4 TestDeleteHandler %d", DeleteHandlersCalls)
+	if utiltests.DeleteHandlersCalls != expected {
+		t.Fatalf("Invalid 13.4 TestDeleteHandler %d", utiltests.DeleteHandlersCalls)
 	}
 }
 
 func TestDeleteFilter(t *testing.T) {
-	repo := SensuRepositoryMock{}
+	repo := utiltests.SensuRepositoryMock{}
 	appcontext.Current.Add(appcontext.SensuRepository, repo)
-	_ = DeleteFilter(fakeSensuURL, "aaaaaqqqqqwwww", "default", "test")
+	_ = DeleteFilter(utiltests.FakeSensuURL, "aaaaaqqqqqwwww", "default", "test")
 	expected := 1
-	if DeleteFiltersCalls != expected {
-		t.Fatalf("Invalid 13.5 TestDeleteFilter %d", DeleteFiltersCalls)
+	if utiltests.DeleteFiltersCalls != expected {
+		t.Fatalf("Invalid 13.5 TestDeleteFilter %d", utiltests.DeleteFiltersCalls)
 	}
 }
 
 func TestDeleteMutator(t *testing.T) {
-	repo := SensuRepositoryMock{}
+	repo := utiltests.SensuRepositoryMock{}
 	appcontext.Current.Add(appcontext.SensuRepository, repo)
-	_ = DeleteMutator(fakeSensuURL, "aaaaaqqqqqwwww", "default", "test")
+	_ = DeleteMutator(utiltests.FakeSensuURL, "aaaaaqqqqqwwww", "default", "test")
 	expected := 1
-	if DeleteMutatorsCalls != expected {
-		t.Fatalf("Invalid 13.6 TestDeleteMutator %d", DeleteMutatorsCalls)
+	if utiltests.DeleteMutatorsCalls != expected {
+		t.Fatalf("Invalid 13.6 TestDeleteMutator %d", utiltests.DeleteMutatorsCalls)
 	}
 }
