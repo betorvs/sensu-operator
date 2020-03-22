@@ -202,16 +202,6 @@ func (r *ReconcileSensuBackend) Reconcile(request reconcile.Request) (reconcile.
 		return reconcile.Result{}, err
 	}
 	podNames := getPodNames(podList.Items)
-	// podNames := []string{}
-	// Count the pods that are pending or running as available
-	// for _, pod := range podList.Items {
-	// 	if pod.GetObjectMeta().GetDeletionTimestamp() != nil {
-	// 		continue
-	// 	}
-	// 	if pod.Status.Phase == corev1.PodPending || pod.Status.Phase == corev1.PodRunning {
-	// 		podNames = append(podNames, pod.GetObjectMeta().GetName())
-	// 	}
-	// }
 
 	// Update status.Nodes if needed
 	if !reflect.DeepEqual(podNames, instance.Status.Nodes) {
@@ -250,7 +240,7 @@ func (r *ReconcileSensuBackend) Reconcile(request reconcile.Request) (reconcile.
 	}
 
 	// access sensu api and get a new api token
-	if instance.Status.AdminToken == "" && instance.Status.ClusterID == "" {
+	if instance.Status.AdminToken == "" && !validationClusterID(instance) {
 		sensuURL := fmt.Sprintf("https://%s", instance.Spec.SensuBackendURL)
 		for {
 			time.Sleep(5 * time.Second)
@@ -258,6 +248,7 @@ func (r *ReconcileSensuBackend) Reconcile(request reconcile.Request) (reconcile.
 				break
 			}
 		}
+		// update sensuBackend status with admin token
 		token := usecase.GetSensuAPIToken(sensuURL)
 		instance.Status.AdminToken = token
 		err := r.client.Status().Update(context.TODO(), instance)
@@ -265,11 +256,12 @@ func (r *ReconcileSensuBackend) Reconcile(request reconcile.Request) (reconcile.
 			reqLogger.Error(err, "Failed to update SensuBackend Status AdminToken.")
 			return reconcile.Result{}, err
 		}
-
 	} else {
+		// in case of failure, update sensuBackend status with empty admin token and clusterID
 		sensuURL := fmt.Sprintf("https://%s", instance.Spec.SensuBackendURL)
 		if !usecase.SensuTestToken(sensuURL, instance.Status.AdminToken) {
 			instance.Status.AdminToken = ""
+			instance.Status.ClusterID = "pending"
 			err := r.client.Status().Update(context.TODO(), instance)
 			if err != nil {
 				reqLogger.Error(err, "Failed to update SensuBackend Status AdminToken with empty status.")
@@ -277,8 +269,8 @@ func (r *ReconcileSensuBackend) Reconcile(request reconcile.Request) (reconcile.
 			}
 		}
 	}
-
-	if instance.Status.OperatorToken == "" && instance.Status.ClusterID == "" {
+	// access sensu api and get operator token
+	if instance.Status.OperatorToken == "" && !validationClusterID(instance) {
 		sensuURL := fmt.Sprintf("https://%s", instance.Spec.SensuBackendURL)
 		for {
 			time.Sleep(5 * time.Second)
@@ -286,6 +278,7 @@ func (r *ReconcileSensuBackend) Reconcile(request reconcile.Request) (reconcile.
 				break
 			}
 		}
+		// update sensuBackend status with operator token
 		token := usecase.CreateOperatorUserGetToken(sensuURL)
 		instance.Status.OperatorToken = token
 		err := r.client.Status().Update(context.TODO(), instance)
@@ -295,9 +288,11 @@ func (r *ReconcileSensuBackend) Reconcile(request reconcile.Request) (reconcile.
 		}
 
 	} else {
+		// in case of failure, update sensuBackend status with empty operator token and clusterID
 		sensuURL := fmt.Sprintf("https://%s", instance.Spec.SensuBackendURL)
 		if !usecase.SensuTestToken(sensuURL, instance.Status.OperatorToken) {
 			instance.Status.OperatorToken = ""
+			instance.Status.ClusterID = "pending"
 			err := r.client.Status().Update(context.TODO(), instance)
 			if err != nil {
 				reqLogger.Error(err, "Failed to update SensuBackend Status OperatorToken with empty status.")
@@ -306,7 +301,8 @@ func (r *ReconcileSensuBackend) Reconcile(request reconcile.Request) (reconcile.
 		}
 	}
 
-	if instance.Status.Token == "" && instance.Status.ClusterID == "" {
+	// test both tokens: admin and operator
+	if instance.Status.Token == "" && !validationClusterID(instance) {
 		sensuURL := fmt.Sprintf("https://%s", instance.Spec.SensuBackendURL)
 		for {
 			time.Sleep(5 * time.Second)
@@ -316,6 +312,7 @@ func (r *ReconcileSensuBackend) Reconcile(request reconcile.Request) (reconcile.
 		}
 		operatorToken := instance.Status.OperatorToken
 		adminToken := instance.Status.AdminToken
+		// test operator token
 		if usecase.SensuTestToken(sensuURL, operatorToken) {
 			instance.Status.Token = operatorToken
 			err := r.client.Status().Update(context.TODO(), instance)
@@ -323,6 +320,7 @@ func (r *ReconcileSensuBackend) Reconcile(request reconcile.Request) (reconcile.
 				reqLogger.Error(err, "Failed to update SensuBackend Status Token with Operator Token.")
 				return reconcile.Result{}, err
 			}
+			// tin case of failure, test admin token
 		} else if usecase.SensuTestToken(sensuURL, adminToken) {
 			instance.Status.Token = adminToken
 			err := r.client.Status().Update(context.TODO(), instance)
@@ -331,8 +329,10 @@ func (r *ReconcileSensuBackend) Reconcile(request reconcile.Request) (reconcile.
 				return reconcile.Result{}, err
 			}
 		} else {
+			// in case both tokens are invalid, change sensuBackend status with empty token and change clusterID
 			reqLogger.Info("Both Tokens are invalids", "pod.Namespace", instance.Namespace, "pod.Name", instance.Name)
 			instance.Status.Token = ""
+			instance.Status.ClusterID = "pending"
 			err := r.client.Status().Update(context.TODO(), instance)
 			if err != nil {
 				reqLogger.Error(err, "Failed to update SensuBackend Status Token with empty status.")
@@ -340,9 +340,13 @@ func (r *ReconcileSensuBackend) Reconcile(request reconcile.Request) (reconcile.
 			}
 		}
 	} else {
+		// in case clusterID have valid value and token are not empty
+		// test token in sensu api, in case of failure
+		// update it from sensuBackend status and clusterID too
 		sensuURL := fmt.Sprintf("https://%s", instance.Spec.SensuBackendURL)
 		if !usecase.SensuTestToken(sensuURL, instance.Status.Token) {
 			instance.Status.Token = ""
+			instance.Status.ClusterID = "pending"
 			err := r.client.Status().Update(context.TODO(), instance)
 			if err != nil {
 				reqLogger.Error(err, "Failed to update SensuBackend Status Token with empty status token.")
@@ -350,8 +354,8 @@ func (r *ReconcileSensuBackend) Reconcile(request reconcile.Request) (reconcile.
 			}
 		}
 	}
-
-	if instance.Status.ClusterID == "" || instance.Status.ClusterID == "pending" || instance.Status.ClusterID == "replacing" {
+	// check if sensuBackend clusterID are invalid and update it
+	if !validationClusterID(instance) {
 		sensuURL := fmt.Sprintf("https://%s", instance.Spec.SensuBackendURL)
 		clusterID := usecase.GetClusterID(sensuURL, instance.Status.Token)
 		instance.Status.ClusterID = clusterID
@@ -364,7 +368,7 @@ func (r *ReconcileSensuBackend) Reconcile(request reconcile.Request) (reconcile.
 
 	// Scale Up Pods
 	numberOfPods := int32(len(podNames))
-	if instance.Spec.Replicas > numberOfPods {
+	if instance.Spec.Replicas > numberOfPods && instance.Status.Token != "" {
 		reqLogger.Info("Waiting for 15 seconds to proceed Sensu Backend Scale UP", "Cluster ID", instance.Status.ClusterID)
 		time.Sleep(15 * time.Second)
 		sensuURL := fmt.Sprintf("https://%s", instance.Spec.SensuBackendURL)
@@ -387,7 +391,7 @@ func (r *ReconcileSensuBackend) Reconcile(request reconcile.Request) (reconcile.
 
 		}
 		return reconcile.Result{}, nil
-	} else if instance.Spec.Replicas < numberOfPods {
+	} else if instance.Spec.Replicas < numberOfPods && instance.Status.Token != "" {
 		reqLogger.Info("Waiting for 15 seconds to proceed Sensu Backend Downsize", "Cluster ID", instance.Status.ClusterID)
 		time.Sleep(15 * time.Second)
 		sensuURL := fmt.Sprintf("https://%s", instance.Spec.SensuBackendURL)
@@ -411,7 +415,7 @@ func (r *ReconcileSensuBackend) Reconcile(request reconcile.Request) (reconcile.
 	}
 
 	// Check if sensu api still running
-	if numberOfPods > 1 && instance.Status.ClusterID != "" {
+	if numberOfPods > 1 && !validationClusterID(instance) {
 		sensuURL := fmt.Sprintf("https://%s", instance.Spec.SensuBackendURL)
 		reqLogger.Info("Waiting for 15 seconds to proceed with Sensu API Health Check", "Cluster ID", instance.Status.ClusterID)
 		time.Sleep(15 * time.Second)
@@ -465,7 +469,6 @@ func (r *ReconcileSensuBackend) Reconcile(request reconcile.Request) (reconcile.
 					return reconcile.Result{}, err
 				}
 			}
-			// instance.Status.Nodes = []string{""}
 			instance.Status.ClusterID = "replacing"
 			err := r.client.Status().Update(context.TODO(), instance)
 			if err != nil {
@@ -474,7 +477,38 @@ func (r *ReconcileSensuBackend) Reconcile(request reconcile.Request) (reconcile.
 			}
 			return reconcile.Result{Requeue: true}, nil
 		}
-
+		// check if all pods are not in CrashLoopBackOff
+		for _, pod := range podList.Items {
+			reqLogger.Info("Checking if all Sensu Backend Pods are healthy", "Cluster ID", instance.Status.ClusterID)
+			if pod.GetObjectMeta().GetDeletionTimestamp() != nil {
+				continue
+			}
+			// Check if all sensu backend nodes are up and running.
+			if pod.Status.Phase == corev1.PodRunning {
+				for _, v := range pod.Status.ContainerStatuses {
+					if !v.Ready && instance.Status.Token != "" && validationClusterID(instance) {
+						// delete member from cluster
+						reqLogger.Info("Checked Sensu Backend Pod Healthy", "Pod Name", pod.Name, "Container Name", v.Name, "Status", v.State)
+						member := fmt.Sprintf("%s.sensu.sensu.svc.cluster.local", pod.Name)
+						reqLogger.Info("Removing a pod to SensuBackend", "Pod.Names", podNames, "Member Name", member)
+						err = usecase.RemoveMember(sensuURL, instance.Status.Token, member)
+						if err != nil {
+							return reconcile.Result{}, err
+						}
+						// delete pod from kubernetes
+						newMemberNumber := strings.Split(pod.Name, "-")
+						targetNumber, _ := strconv.Atoi(newMemberNumber[1])
+						parsedNumber := int32(targetNumber)
+						deletedPod := r.newPodForCR(instance, "existing", parsedNumber)
+						reqLogger.Info("Deleting Pod Failed state", "Sensu Node", pod.Name)
+						err := r.client.Delete(context.TODO(), deletedPod)
+						if err != nil {
+							return reconcile.Result{}, err
+						}
+					}
+				}
+			}
+		}
 	}
 
 	// Check if the Sensu Backend instance is marked to be deleted, which is
@@ -768,6 +802,14 @@ func (r *ReconcileSensuBackend) newSensuSecret(cr *sensuv1alpha1.SensuBackend) *
 	}
 	_ = controllerutil.SetControllerReference(cr, sensuSecret, r.scheme)
 	return sensuSecret
+}
+
+// validationClusterID
+func validationClusterID(cr *sensuv1alpha1.SensuBackend) bool {
+	if cr.Status.ClusterID == "" || cr.Status.ClusterID == "pending" || cr.Status.ClusterID == "replacing" {
+		return false
+	}
+	return true
 }
 
 // getPodNames returns the pod names of the array of pods passed in
